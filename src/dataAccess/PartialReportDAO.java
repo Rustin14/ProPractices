@@ -24,38 +24,44 @@ public class PartialReportDAO implements IPartialReportDAO {
 
 
     @Override
-    public void savePartialReport(int id_partial, int partialNumber, int score, String observations
-            ,Date dueDate, int id_practicing, String address) throws SQLException, ClassNotFoundException {
-                Connection connect = connectDB.getConnection();
-                String query = "INSERT INTO partialreport  (id_partial, id_practicing) VALUES (?, ?)";
-                PreparedStatement statement = connect.prepareStatement(query);
-                statement.setInt(1, id_partial);
-                statement.setInt(7, id_practicing);
-                statement.executeQuery();
-                connectDB.closeConnection();
+    public void savePartialReport(int id_practicing) throws SQLException, ClassNotFoundException {
+        Connection connect = connectDB.getConnection();
+        String query = "INSERT INTO partialreport  (id_practicing) VALUES (?)";
+        PreparedStatement statement = connect.prepareStatement(query);
+        statement.setInt(7, id_practicing);
+        statement.executeQuery();
+        connectDB.closeConnection();
     }
     
-    public void savePartialReportByIDPartial(int id_partial, String address) throws SQLException, ClassNotFoundException, FileNotFoundException {
-        Connection connect = connectDB.getConnection();
-        String query = "INSERT INTO partialreport (paperFile) VALUES (?)";
-        PreparedStatement statement = connect.prepareStatement(query);
-        File file = new File(address);
-        InputStream inputStream = new FileInputStream(file);
-        int fileLength = (int)file.length();
-        statement.setBinaryStream(1, inputStream);
-        statement.setInt(2, id_partial);
-        statement.executeUpdate();
-    }
-
     @Override
-    public PartialReport readPartialReportByIDPartial(int id_partial, String address) throws SQLException, ClassNotFoundException {
+    public PartialReport readPartialReportByIDPracticing(int id_practicing) throws SQLException, ClassNotFoundException {
         PartialReport paper = null;
-        ResultSet resultSet = null;
         Connection connect = connectDB.getConnection();
-        String query = "SELECT paperFile FROM partialreport where id_partial = ?";
+        String query = "SELECT * FROM partialreport where id_practicing = ?";
         PreparedStatement statement = connect.prepareStatement(query);
-        resultSet = statement.executeQuery();
-        connectDB.closeConnection();
+        statement.setInt(1, id_practicing);
+        results = statement.executeQuery();
+        while (results.next()) {
+            paper = new PartialReport();
+            paper.setId_partial(results.getInt("id_partial"));
+            paper.setId_practicing(results.getInt("id_practicing"));
+        }
+        return paper;
+    }
+    
+    @Override
+    public PartialReport readPartialReportByIDPartial(int id_partial) throws SQLException, ClassNotFoundException {
+        PartialReport paper = null;
+        Connection connect = connectDB.getConnection();
+        String query = "SELECT * FROM partialreport where id_partial = ?";
+        PreparedStatement statement = connect.prepareStatement(query);
+        statement.setInt(1, id_partial);
+        results = statement.executeQuery();
+        while (results.next()) {
+            paper = new PartialReport();
+            paper.setId_partial(results.getInt("id_partial"));
+            paper.setId_practicing(results.getInt("id_practicing"));
+        }
         return paper;
     }
 

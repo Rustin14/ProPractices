@@ -24,7 +24,7 @@ public class PracticingDAO implements IPracticingDAO {
     private final ConnectDB connectDB;
     private Connection connection;
     private Statement consulta;
-    private ResultSet resultados;
+    private ResultSet results;
     
     public PracticingDAO() {
         connectDB = new ConnectDB();
@@ -52,12 +52,12 @@ public class PracticingDAO implements IPracticingDAO {
         String query = "SELECT name, enrollment, id_project FROM practicing WHERE enrollment = ?";
         PreparedStatement sentencia = connect.prepareStatement(query);
         sentencia.setString(1, enrollment);
-        resultados = sentencia.executeQuery();
-        while (resultados.next()){
+        results = sentencia.executeQuery();
+        while (results.next()){
             practicing = new Practicing();
-            practicing.setEnrollment(resultados.getString("enrollment"));
-            practicing.setPracticingName(resultados.getString("name"));
-            practicing.setId_project(resultados.getInt("id_project"));
+            practicing.setEnrollment(results.getString("enrollment"));
+            practicing.setPracticingName(results.getString("name"));
+            practicing.setId_project(results.getInt("id_project"));
         }
         connectDB.closeConnection();
         return practicing;
@@ -66,16 +66,16 @@ public class PracticingDAO implements IPracticingDAO {
     public Practicing searchPracticingByIDPracticing (int id_person) throws SQLException, ClassNotFoundException{
         Practicing practicing = null;
         Connection connection = connectDB.getConnection();
-        String query = "SELECT id_person, name from practicing where id_person = ?";
+        String query = "SELECT id_person, enrollment, name from practicing where id_person = ?";
         PreparedStatement sentence = connection.prepareStatement(query);
         sentence.setInt(1, id_person);
-        resultados = sentence.executeQuery();
-        while (resultados.next()) {
+        results = sentence.executeQuery();
+        while (results.next()) {
             practicing = new Practicing();
-            practicing.setPracticingName(resultados.getString("name"));
-            practicing.setId_person(resultados.getInt("id_person"));
+            practicing.setId_person(results.getInt("id_person"));
+            practicing.setEnrollment(results.getString("enrollment"));
+            practicing.setPracticingName(results.getString("name"));
         }
-        connectDB.closeConnection();
         return practicing;
     }
 
@@ -85,11 +85,11 @@ public class PracticingDAO implements IPracticingDAO {
         String query = "SELECT enrollment, name FROM practicing WHERE enrollment LIKE %{?}%";
         PreparedStatement sentencia = connect.prepareStatement(query);
         sentencia.setString(1, keyword);
-        resultados = sentencia.executeQuery();
-        while (resultados.next()) {
+        results = sentencia.executeQuery();
+        while (results.next()) {
             practicing = new Practicing();
-            practicing.setEnrollment(resultados.getString("enrollment"));
-            practicing.setPracticingName(resultados.getString("name"));
+            practicing.setEnrollment(results.getString("enrollment"));
+            practicing.setPracticingName(results.getString("name"));
         }
         connectDB.closeConnection();
         return practicing;
@@ -102,7 +102,7 @@ public class PracticingDAO implements IPracticingDAO {
         String query = "START TRANSACTION; DELETE FROM practicing where enrollment = ?";
         sentence = connect.prepareStatement(query);
         sentence.setString(1, enrollment);
-        resultados = sentence.executeQuery();
+        results = sentence.executeQuery();
         boolean userAnswer = true;
         if (userAnswer) {
                 sentence = connect.prepareStatement("COMMIT");
@@ -120,11 +120,11 @@ public class PracticingDAO implements IPracticingDAO {
         List<Practicing> allPracticing = new ArrayList();
         connection = connectDB.getConnection();
         consulta = connection.createStatement();
-        resultados = consulta.executeQuery("select name, enrollment from practicing");
-        while (resultados.next()){
+        results = consulta.executeQuery("select name, enrollment from practicing");
+        while (results.next()){
             Practicing practicing = new Practicing();
-            practicing.setEnrollment(resultados.getString("enrollment"));
-            practicing.setPracticingName(resultados.getString("name"));
+            practicing.setEnrollment(results.getString("enrollment"));
+            practicing.setPracticingName(results.getString("name"));
             allPracticing.add(practicing);
         }
         connectDB.closeConnection();

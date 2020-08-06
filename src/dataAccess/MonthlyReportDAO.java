@@ -21,7 +21,10 @@ public class MonthlyReportDAO implements IMonthlyReportDAO {
     private Connection connection;
     private Statement statement;
     private ResultSet results;
-
+    
+    public MonthlyReportDAO() {
+         connectDB = new ConnectDB();
+    }
 
     @Override
     public void saveMonthlyReportByIDMonthly(int id_monthly, int id_practicing) throws SQLException, ClassNotFoundException{

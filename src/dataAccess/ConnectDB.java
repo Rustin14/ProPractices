@@ -11,10 +11,7 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * @author BRANDON TRUJILLO
- */
+
 public class ConnectDB {
     private static String url = "jdbc:mysql://localhost:3306/propractices?serverTimezone=US/Central";
     private static String driverName = "com.mysql.cj.jdbc.Driver";

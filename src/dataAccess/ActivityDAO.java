@@ -38,16 +38,17 @@ public class ActivityDAO implements IActivityDAO {
     public Activity readActivityByIDActivity(int id_activity)  throws SQLException, ClassNotFoundException {
         Activity activity = null;
         Connection connection = connectDB.getConnection();
-        String query = "SELECT id_activity, name FROM activity where id_activity = ?";
+        String query = "SELECT * FROM activity where id_activity = ?";
         PreparedStatement statement = connection.prepareStatement(query);
         statement.setInt(1, id_activity);
         statement.executeQuery();
         while (results.next()) {
             activity = new Activity();
             activity.setId_activity(results.getInt("id_activity"));
-            activity.setActivityName(results.getString("name"));
+            activity.setActivityName(results.getString("activityName"));
+            activity.setDescription(results.getString("description"));
+            activity.setId_practicing(results.getInt("id_practicing"));
         }
-        connectDB.closeConnection();
         return activity;
     }
 
@@ -74,21 +75,21 @@ public class ActivityDAO implements IActivityDAO {
     }
 
     @Override
-    public List<Activity> returnAllActivities()  throws SQLException, ClassNotFoundException {
-        List<Activity> allActivities = new ArrayList();
+    public ArrayList<Activity> returnAllActivities()  throws SQLException, ClassNotFoundException {
+        ArrayList<Activity> allActivities = new ArrayList();
         Activity activity = null;
         Connection connection = connectDB.getConnection();
-        String query = "SELECT id_activity, name FROM activity";
+        String query = "SELECT * FROM activity";
         PreparedStatement statement = connection.prepareStatement(query);
-        statement.executeQuery();
+        results = statement.executeQuery();
         while(results.next()) {
             activity = new Activity();
             activity.setId_activity(results.getInt("id_activity"));
-            activity.setActivityName(results.getString("name"));
+            activity.setActivityName(results.getString("activityName"));
+            activity.setDescription(results.getString("description"));
             activity.setId_practicing(results.getInt("id_practicing"));
             allActivities.add(activity);
         }
-        connectDB.closeConnection();
         return allActivities;
     }
 }

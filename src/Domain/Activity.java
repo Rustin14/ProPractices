@@ -4,19 +4,19 @@ public class Activity {
     private int id_activity;
     private String activityName;
     private String description;
-    private String timePlanned;
-    private String timeInvested;
-    private String timeInWeeks;
+    private int timePlanned;
+    private int timeInvested;
     private int id_practicing;
+    private int id_professor;
 
-    public Activity(int id_activity, String name, String description, String plannedTime, String timeInvested, String timeInWeeks, int id_practicing) {
+    public Activity(int id_activity, String name, String description, int plannedTime, int timeInvested, int id_professor, int id_practicing) {
         this.id_activity = id_activity;
         this.activityName = name;
         this.description = description;
         this.timePlanned = plannedTime;
         this.timeInvested = timeInvested;
-        this.timeInWeeks = timeInWeeks;
         this.id_practicing = id_practicing;
+        this.id_professor = id_professor;
     }
 
     public Activity() { }
@@ -53,27 +53,29 @@ public class Activity {
         this.description = description;
     }
 
-    public String getTimePlanned() {
+    public int getTimePlanned() {
         return timePlanned;
     }
 
-    public void setTimePlanned(String timePlanned) {
+    public void setTimePlanned(int timePlanned) {
         this.timePlanned = timePlanned;
     }
 
-    public String getTimeInvested() {
+    public int getTimeInvested() {
         return timeInvested;
     }
 
-    public void setTimeInvested(String timeInvested) {
+    public void setTimeInvested(int timeInvested) {
         this.timeInvested = timeInvested;
     }
 
-    public String getTimeInWeeks() {
-        return timeInWeeks;
+    public int getId_professor() {
+        return id_professor;
     }
 
-    public void setTimeInWeeks(String timeInWeeks) {
-        this.timeInWeeks = timeInWeeks;
+    public void setId_professor(int id_professor) {
+        this.id_professor = id_professor;
     }
+    
+    
 }

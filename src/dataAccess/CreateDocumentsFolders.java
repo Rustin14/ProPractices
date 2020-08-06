@@ -14,7 +14,7 @@ public class CreateDocumentsFolders {
     public String dirName = null;
     
     public boolean createStudentsFolders (String studentName) {
-       dirName = "./Documents/" + studentName;
+       dirName = "./Documents/" + studentName + "/";
        File directory = new File(dirName);
        if (directory.exists()) {
            success = false;
@@ -25,7 +25,7 @@ public class CreateDocumentsFolders {
     }
     
     public boolean createDocumentsFolder (String studentName, String documentName) {
-        dirName = dirName + documentName;
+        dirName = dirName + documentName + "/";
         File directory = new File(dirName);
         if (directory.exists()) {
             success = false;
@@ -36,6 +36,8 @@ public class CreateDocumentsFolders {
     }
     
     public boolean createDocumentIDFolder (String studentName, String documentName, int documentID) {
+        createStudentsFolders(studentName);
+        createDocumentsFolder(studentName, documentName);
         dirName = dirName + Integer.toString(documentID);
         File directory = new File(dirName);
         if (directory.exists()) {
@@ -45,6 +47,7 @@ public class CreateDocumentsFolders {
         }
         return success;
     }
+    
     
     public String getDirName() {
         return dirName;

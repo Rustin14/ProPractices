@@ -28,7 +28,7 @@ public class AddMonthlyReport extends javax.swing.JFrame {
     MonthlyReport monthlyReport = new MonthlyReport();
     Practicing practicing = new Practicing();
     String filePath;
-    boolean flag;
+    boolean fileReaden;
     int id_monthly;
     
     public AddMonthlyReport() {
@@ -107,7 +107,7 @@ public class AddMonthlyReport extends javax.swing.JFrame {
                 .addGap(11, 11, 11)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 356, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 349, Short.MAX_VALUE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton2)
@@ -121,7 +121,7 @@ public class AddMonthlyReport extends javax.swing.JFrame {
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
         filePath = guiUtilities.chooseFile(jScrollPane1);
-        flag = true;
+        fileReaden = true;
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -163,7 +163,7 @@ public class AddMonthlyReport extends javax.swing.JFrame {
     }
     
     void saveMonthlyReport() {
-        if (!flag) {
+        if (!fileReaden) {
             JOptionPane.showMessageDialog(this, "Seleccione primero su documento.");
         } else {
             try {
@@ -174,7 +174,7 @@ public class AddMonthlyReport extends javax.swing.JFrame {
             createFolders.createDocumentIDFolder(practicing.getPracticingName(), "MonthlyReport", monthlyReport.getId_monthly());
             Path monthlyFile = Paths.get(filePath);
             try {
-                String completeFinalFileName = createFolders.getDirName() + monthlyFile.getFileName(); 
+                String completeFinalFileName = createFolders.getDirName() + "/" + monthlyFile.getFileName(); 
                 Path filesPaths = Files.move(Paths.get(filePath), Paths.get(completeFinalFileName));
             } catch (IOException ioException) {
                 JOptionPane.showMessageDialog(this, "No fue posible acceder al archivo.");

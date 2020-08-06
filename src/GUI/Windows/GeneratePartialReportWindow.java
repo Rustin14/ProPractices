@@ -1,18 +1,15 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package GUI.Windows;
 
 import Domain.Activity;
 import Domain.Practicing;
 import Domain.Project;
+import dataAccess.CreateDocumentsFolders;
 import dataAccess.PracticingDAO;
 import dataAccess.ProjectDAO;
 import dataAccess.generatePDF;
 import java.awt.Component;
 import java.awt.Container;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -26,15 +23,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 
 
-/**
- *
- * @author gabrielflores
- */
 public class GeneratePartialReportWindow extends javax.swing.JFrame {
 
+    generatePDF generatePDF = new generatePDF();
+    InputStream templateFile = null;
+    Project project = null;
+    Practicing practicing = null;
+    Activity activity = null;
+    CreateDocumentsFolders createFolders = new CreateDocumentsFolders();
+    
     
     public GeneratePartialReportWindow() {
         initComponents();
@@ -68,48 +69,52 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
         container.add(jTextActivityDescription);
         container.add(jTextPlannedTime);
         container.add(jTextInvestedTime);
-        container.add(jTextTimeInWeeks);
         container.add(jTextPracticingEnrollment);
         return container;
     }
     
-    void generatePartialReport() {
-        if (checkForEmptyJText(fillContainer())) {
-            JOptionPane.showMessageDialog(this, "No deje campos vacíos.");
-        }
-        Activity activity = new Activity();
+    void createActivity() {
+        activity = new Activity();
         activity.setActivityName(jTextNameActivity.getText());
         activity.setDescription(jTextActivityDescription.getText());
-        activity.setTimePlanned(jTextPlannedTime.getText());
-        activity.setTimeInvested(jTextInvestedTime.getText());
-        activity.setTimeInWeeks(jTextTimeInWeeks.getText());
-         
+        activity.setTimePlanned(Integer.parseInt(jTextPlannedTime.getText()));
+        activity.setTimeInvested(Integer.parseInt(jTextInvestedTime.getText()));
+    }
+    
+    void getPracticing() {
         PracticingDAO practicingDAO = new PracticingDAO();
-        Practicing practicing = null;
         try {
             practicing = practicingDAO.searchPracticingByEnrollment(jTextPracticingEnrollment.getText());
         } catch (SQLException | ClassNotFoundException exception) {
             JOptionPane.showMessageDialog(this, "No es posible acceder a la base de datos en este momento. Inténtelo más tarde.");
             Logger.getLogger(GeneratePartialReportWindow.class.getName()).log(Level.SEVERE, null, exception);
         }
-        
+    }
+    
+    void getProject() {
         ProjectDAO projectDAO = new ProjectDAO();
-        Project project = null;
         int id_project = practicing.getId_project();
         try {
-            project = projectDAO.searchProjectByIDProject(4);
+            project = projectDAO.searchProjectByIDProject(id_project);
         } catch (SQLException | ClassNotFoundException exception) {
             JOptionPane.showMessageDialog(this, "No es posible acceder a la base de datos en este momento. Inténtelo más tarde.");
             Logger.getLogger(GeneratePartialReportWindow.class.getName()).log(Level.SEVERE, null, exception);
         }
-        
+    }
+    
+    void generatePartialReport() {
+        if (checkForEmptyJText(fillContainer())) {
+            JOptionPane.showMessageDialog(this, "No deje campos vacíos.");
+        }
+        createActivity();
         List<Activity> listItems = new ArrayList<>();
         listItems.add(activity);
         
-        String outputFile = "/Users/gabrielflores/JaspersoftWorkspace/ReporteParcial/" + "PruebaReporteParcial.pdf";
         JRBeanCollectionDataSource itemsJRBean = new JRBeanCollectionDataSource(listItems);
        
         Map<String, Object> parameters = new HashMap<String, Object>();
+        getProject();
+        getPracticing();
         parameters.put("CollectionDataSet", itemsJRBean);
         parameters.put("practicingName", practicing.getPracticingName());
         parameters.put("projectName", project.getProjectName());
@@ -123,14 +128,23 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "No es posible acceder al archivo base del reporte. Inténtelo más tarde.");
             Logger.getLogger(GeneratePartialReportWindow.class.getName()).log(Level.SEVERE, null, ex);
         } 
-        
+        JasperPrint jasperPrint = null;
         try {
-            generatePDF.generateReport(parameters, templateFile);
+            jasperPrint = generatePDF.generatePartialReport(parameters, templateFile);
         } catch (JRException reportCreatingException) {
            JOptionPane.showMessageDialog(this, "No es posible finalizar con su reporte en este momento, inténtelo más tarde.");
            Logger.getLogger(GeneratePartialReportWindow.class.getName()).log(Level.SEVERE, null, reportCreatingException);
         }
         
+        try {
+            generatePDF.savePartialReportFile(practicing, jasperPrint);
+        } catch (SQLException | ClassNotFoundException sqlException) {
+            JOptionPane.showMessageDialog(this, "No es posible acceder a la base de datos en este momento, inténtelo más tarde.");
+            Logger.getLogger(GeneratePartialReportWindow.class.getName()).log(Level.SEVERE, null, sqlException);
+        } catch (JRException | FileNotFoundException generateReportException) {
+            JOptionPane.showMessageDialog(this, "No es posible generar su reporte en este momento, inténtelo más tarde.");
+            Logger.getLogger(GeneratePartialReportWindow.class.getName()).log(Level.SEVERE, null, generateReportException);
+        }
         try {
             generatePDF.showResultingPDF();
         } catch (IOException readPDFException) {
@@ -139,8 +153,8 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
         }
         JOptionPane.showMessageDialog(this, "Su reporte fue creado de manera correcta.");
     }
+        
 
-    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -157,8 +171,6 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
         jTextPlannedTime = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
         jTextInvestedTime = new javax.swing.JTextField();
-        jLabel8 = new javax.swing.JLabel();
-        jTextTimeInWeeks = new javax.swing.JTextField();
         jLabel9 = new javax.swing.JLabel();
         jButtonFinalize = new javax.swing.JButton();
         jButtonCancel = new javax.swing.JButton();
@@ -167,7 +179,6 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(java.awt.Color.white);
-        setPreferredSize(new java.awt.Dimension(800, 600));
 
         jLabel1.setFont(new java.awt.Font("sansserif", 1, 16)); // NOI18N
         jLabel1.setText("Información de actividad");
@@ -189,14 +200,14 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
         jLabel4.setText("Nombre de actividad");
 
         jLabel5.setFont(new java.awt.Font("sansserif", 0, 14)); // NOI18N
-        jLabel5.setText("Descripción de la actividad");
+        jLabel5.setText("Descripción de la actividad (max. 256 carácteres)");
 
         jTextActivityDescription.setColumns(20);
         jTextActivityDescription.setRows(5);
         jScrollPane1.setViewportView(jTextActivityDescription);
 
         jLabel6.setFont(new java.awt.Font("sansserif", 0, 14)); // NOI18N
-        jLabel6.setText("Tiempo planteado");
+        jLabel6.setText("Tiempo planteado (en semanas)");
 
         jTextPlannedTime.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -205,20 +216,11 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
         });
 
         jLabel7.setFont(new java.awt.Font("sansserif", 0, 14)); // NOI18N
-        jLabel7.setText("Tiempo real implementado");
+        jLabel7.setText("Tiempo real implementado (en semanas)");
 
         jTextInvestedTime.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jTextInvestedTimeActionPerformed(evt);
-            }
-        });
-
-        jLabel8.setFont(new java.awt.Font("sansserif", 0, 14)); // NOI18N
-        jLabel8.setText("Semanas de la actividad");
-
-        jTextTimeInWeeks.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextTimeInWeeksActionPerformed(evt);
             }
         });
 
@@ -238,7 +240,7 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
             }
         });
 
-        jLabel10.setFont(new java.awt.Font("Arial", 0, 14)); // NOI18N
+        jLabel10.setFont(new java.awt.Font("SansSerif", 0, 14)); // NOI18N
         jLabel10.setText("Matrícula de Practicante");
 
         jTextPracticingEnrollment.addActionListener(new java.awt.event.ActionListener() {
@@ -260,33 +262,37 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
                         .addGap(70, 70, 70)))
                 .addGap(218, 218, 218))
             .addGroup(layout.createSequentialGroup()
-                .addGap(69, 69, 69)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel8)
-                    .addComponent(jLabel9)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jTextTimeInWeeks, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextNameActivity, javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jTextPlannedTime, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 325, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(85, 85, 85)
+                        .addGap(69, 69, 69)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel7)
-                            .addComponent(jTextInvestedTime, javax.swing.GroupLayout.PREFERRED_SIZE, 238, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addComponent(jTextPracticingEnrollment, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                            .addComponent(jLabel9)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jTextNameActivity, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                        .addComponent(jTextPlannedTime, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(jTextInvestedTime, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(11, 11, 11)))
+                                .addGap(85, 85, 85)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                    .addComponent(jTextPracticingEnrollment, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addGap(54, 54, 54)
+                                .addComponent(jLabel7))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 573, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(17, 17, 17)
+                        .addGap(80, 80, 80)
                         .addComponent(jButtonFinalize)
-                        .addGap(58, 58, 58)
+                        .addGap(54, 54, 54)
                         .addComponent(jButtonCancel)))
-                .addContainerGap(83, Short.MAX_VALUE))
+                .addContainerGap(71, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -300,42 +306,34 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel10))
+                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextNameActivity, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextPracticingEnrollment, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(24, 24, 24)
                 .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
                     .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 17, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jTextPlannedTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextInvestedTime, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(jLabel8)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jTextTimeInWeeks, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel9)
+                    .addComponent(jTextInvestedTime, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(27, 27, 27)
+                .addComponent(jLabel9)
+                .addGap(35, 35, 35)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButtonFinalize)
-                    .addComponent(jButtonCancel))
-                .addContainerGap(66, Short.MAX_VALUE))
+                    .addComponent(jButtonCancel)
+                    .addComponent(jButtonFinalize))
+                .addContainerGap(41, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jTextTimeInWeeksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextTimeInWeeksActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jTextTimeInWeeksActionPerformed
 
     private void jButtonFinalizeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonFinalizeActionPerformed
         generatePartialReport();
@@ -407,7 +405,6 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTextArea jTextActivityDescription;
@@ -415,6 +412,5 @@ public class GeneratePartialReportWindow extends javax.swing.JFrame {
     private javax.swing.JTextField jTextNameActivity;
     private javax.swing.JTextField jTextPlannedTime;
     private javax.swing.JTextField jTextPracticingEnrollment;
-    private javax.swing.JTextField jTextTimeInWeeks;
     // End of variables declaration//GEN-END:variables
 }
